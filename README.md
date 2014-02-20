@@ -19,7 +19,7 @@ In your `Gemfile`:
 
     gem 'peek-a-rails'
 
-# Gettin Started
+# Getting Started
 
 Generate initializer:
 
