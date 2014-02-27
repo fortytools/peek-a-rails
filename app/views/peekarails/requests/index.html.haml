@@ -1,0 +1,49 @@
+.container
+  .row
+    .col-md-6
+      %h3.page-header Requests per Minute
+
+      #throughput-graph.graph
+
+    .col-md-6
+      %h3.page-header Average Response Time
+
+      #response-graph.graph
+
+  .row
+    .col-md-6
+      %h3.page-header Status
+
+      #status-graph
+        .graph
+        .slider
+
+    .col-md-6
+      %h3.page-header Heat Zone
+
+      %table.table.table-condensed
+        %thead
+          %tr
+            %th Target
+            %th Hits
+
+        %tbody
+          - @actions.each do |action|
+            %tr
+              %td= action[:name]
+              %td= action[:total]
+
+:coffeescript
+
+
+  palette = new Rickshaw.Color.Palette { scheme: 'spectrum14' }
+
+  count = #{@total_minutes_json}
+  duration = #{@total_duration_json}
+  status = #{@total_status_json}
+
+  renderSingleGraph('Requests', count, palette.color(), 'bar', '#throughput-graph')
+  renderSingleGraph('Milliseconds', duration, palette.color(), 'line', '#response-graph')
+
+  renderMultiGraph(status, '#status-graph')
+

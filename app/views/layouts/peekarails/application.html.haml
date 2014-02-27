@@ -1,22 +1,47 @@
 !!!
 %html
-%head
-  %title Peek-a-Rails
-  = stylesheet_link_tag    "peekarails/application", media: "all"
-  = javascript_include_tag "peekarails/application"
-  = csrf_meta_tags
+  %head
+    %title Peek-a-Rails
+    = stylesheet_link_tag    "peekarails/application", media: "all"
+    = javascript_include_tag "peekarails/application"
+    = csrf_meta_tags
 
-%body
-  %header.navbar.navbar-default.navbar-static-top{role: 'navigation'}
-    .container
-      .navbar-header
-        %button.navbar-toggle{type: "button", data: {toggle: "collapse", target: "#bs-navbar-collapse"}}
-          %span.sr-only Toggle navigation
-          %span.icon-bar
-          %span.icon-bar
-          %span.icon-bar
-      %a.navbar-brand{href: "#"} Peek-a-Rails
+  %body
+    %header.navbar.navbar-default.navbar-inverse.navbar-static-top{role: 'navigation'}
+      .container
+        .navbar-header
+          %button.navbar-toggle{type: "button", data: {toggle: "collapse", target: "#bs-navbar-collapse"}}
+            %span.sr-only Toggle navigation
+            %span.icon-bar
+            %span.icon-bar
+            %span.icon-bar
+          %a.navbar-brand{href: "#"} Peek-a-Rails
 
-  = yield
+        #bs-navbar-collapse.navbar-collapse.collapse
+          %ul.nav.navbar-nav
+            %li{class: controller_name == 'requests' ? 'active' : ''}
+              = link_to 'Requests', requests_path(granularity: @granularity_key)
+            %li{class: controller_name == 'database' ? 'active' : ''}
+              = link_to 'Database', '#'
+            %li{class: controller_name == 'systems' ? 'active' : ''}
+              = link_to 'System', system_path(granularity: @granularity_key)
 
-  %footer
+          %ul.nav.navbar-nav.navbar-right
+
+            %li.dropdown
+              %a.dropdown-toggle{href: '#', data: {toggle: 'dropdown'}}
+                = @granularity[:name]
+                %b.caret
+
+              %ul.dropdown-menu
+                %li= link_to 'Realtime', url_for(only_path: false, granularity: 'seconds')
+                %li= link_to 'Last 24 hours', url_for(only_path: false, granularity: 'minutes')
+                %li= link_to 'Last week', url_for(only_path: false, granularity: 'hours')
+                %li= link_to 'Last month', url_for(only_path: false, granularity: 'days')
+                %li= link_to 'Last year', url_for(only_path: false, granularity: 'months')
+
+
+    = yield
+
+    %footer
+

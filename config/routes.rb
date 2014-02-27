@@ -1,5 +1,6 @@
 Peekarails::Engine.routes.draw do
-  get 'dashboard' => 'dashboard#show', as: :dashboard
+  resources :requests, only: [:index]
+  resource :system, only: [:show]
 
-  root to: 'dashboard#show'
+  root to: 'requests#index'
 end
