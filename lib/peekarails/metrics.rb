@@ -159,14 +159,12 @@ module Peekarails::Metrics
       return result
     end
 
-    def total_count granularity
-      bucket = round_timestamp Time.now.to_i, granularity_info(granularity)
-      redis.hgetall "controllers:total:count:#{granularity}:#{bucket}"
+    def total_count granularity, from, to
+      query(granularity, "controllers:total:count", from, to)
     end
 
-    def total_duration granularity
-      bucket = round_timestamp Time.now.to_i, granularity_info(granularity)
-      redis.hgetall "controllers:total:duration:#{granularity}:#{bucket}"
+    def total_duration granularity, from, to
+      query(granularity, "controllers:total:duration", from, to)
     end
 
     def total_status granularity, from, to

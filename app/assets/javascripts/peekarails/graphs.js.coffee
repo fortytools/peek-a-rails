@@ -1,6 +1,8 @@
 @renderSingleGraph = (name, data, color, type, element) ->
+  root = document.querySelector(element)
+
   graph = new Rickshaw.Graph {
-    element: document.querySelector(element),
+    element: root.querySelector('.graph'),
     renderer: type,
     interpolation: 'linear',
     series: [
@@ -8,23 +10,30 @@
     ]
   } 
 
+  graph.render()
+
   hoverDetail = new Rickshaw.Graph.HoverDetail {
     graph: graph,
     yFormatter: (y) ->
       y
   }
 
+
   xAxis = new Rickshaw.Graph.Axis.Time {
     graph: graph
   }
+  xAxis.render()
+
   yAxis = new Rickshaw.Graph.Axis.Y {
     graph: graph,
     tickFormat: Rickshaw.Fixtures.Number.formatKMBT
   }
-
-  graph.render()
-  xAxis.render()
   yAxis.render()
+
+  slider = new Rickshaw.Graph.RangeSlider({
+    graph: graph,
+    element: root.querySelector('.slider')
+  })
 
   return graph
 

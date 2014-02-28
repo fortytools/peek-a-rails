@@ -4,8 +4,8 @@ module Peekarails
   class RequestsController < ApplicationController
 
     def index
-      count = Metrics.total_count(@granularity_key)
-      duration = Metrics.total_duration(@granularity_key)
+      count = Metrics.total_count(@granularity_key, @from, @to)
+      duration = Metrics.total_duration(@granularity_key, @from, @to)
 
       @total_minutes_json = count.map do |timestamp, count|
         {x: timestamp.to_i, y: count.to_i}
@@ -16,11 +16,14 @@ module Peekarails
       end
 
       @total_duration_json = count.zip(duration).map do |count, duration|
-        {x: count.first.to_i, y: duration.last.to_i / count.last.to_i}
+        timestamp = count.first
+        count = count.last
+        duration = duration.last
+        {x: timestamp, y: count > 0 ? duration / count : 0}
       end.to_json
 
       now = Time.now.to_i
-      total_status = Metrics.total_status(@granularity_key, now - (@granularity[:ttl] / 2), now)
+      total_status = Metrics.total_status(@granularity_key, @from, @to)
 
       @total_status_json = total_status.map do |status|
         if status[:data]

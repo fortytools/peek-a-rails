@@ -14,6 +14,9 @@ module Peekarails
       end
 
       @granularity = Metrics::GRANULARITIES[@granularity_key]
+
+      @from = Time.now.to_i - @granularity[:ttl] / 2
+      @to = Time.now.to_i
     end
   end
 end
