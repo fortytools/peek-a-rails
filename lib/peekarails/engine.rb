@@ -19,6 +19,15 @@ module Peekarails
 
         Thread.current[:peekarails_context][:duration] =
           event.duration.round
+
+        if event.payload[:view_runtime]
+          Thread.current[:peekarails_context][:view_duration] =
+            event.payload[:view_runtime].round
+        end
+        if event.payload[:db_runtime]
+          Thread.current[:peekarails_context][:db_duration] =
+            event.payload[:db_runtime].round
+        end
       end
 
     end

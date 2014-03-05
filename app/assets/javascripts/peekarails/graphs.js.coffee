@@ -2,6 +2,7 @@
   root = document.querySelector(element)
 
   graph = new Rickshaw.Graph {
+    height: 150,
     element: root.querySelector('.graph'),
     renderer: type,
     interpolation: 'linear',
@@ -46,11 +47,14 @@
     { data: data.data, color: palette.color(), name: data.name }
 
   graph = new Rickshaw.Graph {
+    height: 150,
     element: root.querySelector('.graph'),
     renderer: 'area',
     interpolation: 'linear',
     series: series
   }
+
+  graph.render()
 
   hoverDetail = new Rickshaw.Graph.HoverDetail {
     graph: graph,
@@ -61,20 +65,18 @@
   xAxis = new Rickshaw.Graph.Axis.Time {
     graph: graph
   }
+  xAxis.render()
+
   yAxis = new Rickshaw.Graph.Axis.Y {
     graph: graph,
     tickFormat: Rickshaw.Fixtures.Number.formatKMBT
   }
+  yAxis.render()
 
   slider = new Rickshaw.Graph.RangeSlider {
     graph: graph,
     element: root.querySelector('.slider')
   }
-
-  graph.render()
-  slider.render()
-  xAxis.render()
-  yAxis.render()
 
   return graph
 

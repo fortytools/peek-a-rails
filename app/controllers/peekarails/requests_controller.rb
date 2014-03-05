@@ -6,6 +6,8 @@ module Peekarails
     def index
       count = Metrics.total_count(@granularity_key, @from, @to)
       duration = Metrics.total_duration(@granularity_key, @from, @to)
+      view_duration = Metrics.total_view_duration(@granularity_key, @from, @to)
+      db_duration = Metrics.total_db_duration(@granularity_key, @from, @to)
 
       @total_minutes_json = count.map do |timestamp, count|
         {x: timestamp.to_i, y: count.to_i}
@@ -19,6 +21,25 @@ module Peekarails
         timestamp = count.first
         count = count.last
         duration = duration.last
+        {x: timestamp, y: count > 0 ? duration / count : 0}
+      end.to_json
+
+      @total_db_duration = count.zip(db_duration).map do |count, duration|
+        timestamp = count.first
+        count = count.last
+        duration = duration.last
+        {x: timestamp, y: count > 0 ? duration / count : 0}
+      end.to_json
+      @total_view_duration = count.zip(view_duration).map do |count, duration|
+        timestamp = count.first
+        count = count.last
+        duration = duration.last
+        {x: timestamp, y: count > 0 ? duration / count : 0}
+      end.to_json
+      @total_other_duration = count.zip(duration, view_duration, db_duration).map do |count, total, view, db|
+        timestamp = count.first
+        count = count.last
+        duration = total.last - view.last - db.last
         {x: timestamp, y: count > 0 ? duration / count : 0}
       end.to_json
 
@@ -52,7 +73,7 @@ module Peekarails
 
       @actions = @actions.sort do |left, right|
         right[:total] <=> left[:total]
-      end.take(10)
+      end
     end
 
   end

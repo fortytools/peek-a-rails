@@ -19,21 +19,21 @@ module Peekarails::Metrics
       size:   168,     # Hours in one week
       ttl:    1209600, # Seconds in two weeks
       factor: 3600,    # Seconds in one hour
-      name: 'Last week'
+      name: 'Last 7 days'
     },
 
     days: { # Available for 30 days
       size:   30,      # Days in one month
       ttl:    5184000, # Seconds in 60 days
       factor: 86400,   # Seconds in one day
-      name: 'Last month'
+      name: 'Last 4 weeks'
     },
 
     months: { # Available for 1 year
       size:   12,       # Months in one year
       ttl:    63072000, # Seconds in 2 years
       factor: 2592000,  # Seconds in 1 month
-      name: 'Last year'
+      name: 'Last 12 months'
     }
   }
 
@@ -65,6 +65,9 @@ module Peekarails::Metrics
       action = context[:action] || 'Unknown'
       duration = context[:duration]
       status = context[:status]
+
+      view_duration = context[:view_duration]
+      db_duration = context[:db_duration]
 
       redis.pipelined do
         redis.sadd 'controllers.actions', action
@@ -111,6 +114,25 @@ module Peekarails::Metrics
             key = "system.gc.major:#{name}:#{bucket}"
             redis.hincrby key, index, context[:gc_major_count]
             redis.expireat key, bucket + granularity[:ttl]
+
+            if view_duration
+              key = "controllers:#{action}:view_duration:#{name}:#{bucket}"
+              redis.hincrby key, index, view_duration
+              redis.expireat key, bucket + granularity[:ttl]
+
+              key = "controllers:total:view_duration:#{name}:#{bucket}"
+              redis.hincrby key, index, view_duration
+              redis.expireat key, bucket + granularity[:ttl]
+            end
+            if db_duration
+              key = "controllers:#{action}:db_duration:#{name}:#{bucket}"
+              redis.hincrby key, index, db_duration
+              redis.expireat key, bucket + granularity[:ttl]
+
+              key = "controllers:total:db_duration:#{name}:#{bucket}"
+              redis.hincrby key, index, db_duration
+              redis.expireat key, bucket + granularity[:ttl]
+            end
           end
         end
       end
@@ -167,6 +189,14 @@ module Peekarails::Metrics
       query(granularity, "controllers:total:duration", from, to)
     end
 
+    def total_view_duration granularity, from, to
+      query(granularity, "controllers:total:view_duration", from, to)
+    end
+
+    def total_db_duration granularity, from, to
+      query(granularity, "controllers:total:db_duration", from, to)
+    end
+
     def total_status granularity, from, to
       redis.smembers('controllers.status').map do |status|
         {
@@ -198,6 +228,7 @@ module Peekarails::Metrics
     def actions
       redis.smembers 'controllers.actions'
     end
+
   end
 
 end
