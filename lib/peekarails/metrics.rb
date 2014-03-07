@@ -1,15 +1,15 @@
 module Peekarails::Metrics
 
   GRANULARITIES = {
-    five_seconds: { # kept for 1 hour
-      size:   720,
-      ttl:    7200,
+    five_seconds: { # kept for 1/2 hour
+      size:   360, # 5 Seconds in 1/2 hour
+      ttl:    3600,
       factor: 5,
       name: 'Realtime'
     },
 
     five_minutes: { # Available for 24 hours
-      size:   288,    # Minutes in 24 hours
+      size:   288,    # 5 Minutes in 24 hours
       ttl:    172800, # Seconds in 48 hours
       factor: 300,    # Number of seconds that make up this granularity
       name: 'Last 24 hours'
@@ -93,6 +93,10 @@ module Peekarails::Metrics
 
             key = "controllers:#{action}:duration:#{name}:#{bucket}"
             redis.hincrby key, index, duration
+            redis.expireat key, bucket + granularity[:ttl]
+
+            key = "controllers:#{action}:#{status}:#{name}:#{bucket}"
+            redis.hincrby key, index, 1
             redis.expireat key, bucket + granularity[:ttl]
 
             key = "controllers:total:count:#{name}:#{bucket}"
@@ -181,27 +185,27 @@ module Peekarails::Metrics
       return result
     end
 
-    def total_count granularity, from, to
-      query(granularity, "controllers:total:count", from, to)
+    def count granularity, from, to, action = 'total'
+      query(granularity, "controllers:#{action}:count", from, to)
     end
 
-    def total_duration granularity, from, to
-      query(granularity, "controllers:total:duration", from, to)
+    def duration granularity, from, to, action = 'total'
+      query(granularity, "controllers:#{action}:duration", from, to)
     end
 
-    def total_view_duration granularity, from, to
-      query(granularity, "controllers:total:view_duration", from, to)
+    def view_duration granularity, from, to, action = 'total'
+      query(granularity, "controllers:#{action}:view_duration", from, to)
     end
 
-    def total_db_duration granularity, from, to
-      query(granularity, "controllers:total:db_duration", from, to)
+    def db_duration granularity, from, to, action = 'total'
+      query(granularity, "controllers:#{action}:db_duration", from, to)
     end
 
-    def total_status granularity, from, to
+    def status granularity, from, to, action = 'total'
       redis.smembers('controllers.status').map do |status|
         {
           status: status,
-          data: query(granularity, "controllers:total:#{status}", from, to)
+          data: query(granularity, "controllers:#{action}:#{status}", from, to)
         }
       end
     end
@@ -213,16 +217,6 @@ module Peekarails::Metrics
           data: query(granularity, "system.gc.#{gc}", from, to)
         }
       end
-    end
-
-    def count action, granularity
-      bucket = round_timestamp Time.now.to_i, granularity_info(granularity)
-      redis.hgetall "controllers:#{action}:count:#{granularity}:#{bucket}"
-    end
-
-    def duration action, granularity
-      bucket = round_timestamp Time.now.to_i, granularity_info(granularity)
-      redis.hgetall "controllers:#{action}:duration:#{granularity}:#{bucket}"
     end
 
     def actions

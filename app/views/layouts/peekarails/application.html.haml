@@ -26,8 +26,29 @@
               = link_to 'System', system_path(granularity: @granularity_key)
 
           %ul.nav.navbar-nav.navbar-right
+            - if @granularity_key == :five_seconds # Realtime!
+              %li
+                %button.refresh.navbar-btn.btn.btn-success.active{type: 'button', data: {toggle: 'button'}}
+                  %span.glyphicon.glyphicon-refresh{title: 'Auto Refresh'}
 
-            %li
+              :coffeescript
+                $ () ->
+                  reloading = setTimeout('window.location.reload(true);', 5000)
+
+                  $('button.refresh').click () ->
+                    btn = $(this)
+                    if btn.hasClass 'active'
+                      clearTimeout(reloading)
+                      btn.removeClass 'btn-success'
+                      btn.addClass 'btn-danger'
+                    else
+                      reloading = setTimeout('window.location.reload(true);', 5000)
+                      btn.removeClass 'btn-danger'
+                      btn.addClass 'btn-success'
+
+              %li.divider
+
+            %li.granularity
               .btn-group.navbar-btn
                 %button.btn.btn-info.dropdown-toggle{type: 'button', data: {toggle: 'dropdown'}}
                   = @granularity[:name]
@@ -35,7 +56,7 @@
 
                 %ul.dropdown-menu
                   - Peekarails::Metrics::GRANULARITIES.each do |key, granularity|
-                    %li= link_to granularity[:name], url_for(only_path: false, granularity: key)
+                    %li= link_to granularity[:name], url_for(params.merge(only_path: false, granularity: key))
 
 
     = yield

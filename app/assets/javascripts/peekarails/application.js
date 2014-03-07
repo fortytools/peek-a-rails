@@ -14,4 +14,5 @@
 //= require jquery.ui.slider
 //= require rickshaw_with_d3
 //= require bootstrap/dropdown
+//= require bootstrap/button
 //= require peekarails/graphs

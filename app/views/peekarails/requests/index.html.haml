@@ -1,13 +1,13 @@
 .container
   .row
     .col-md-6
-      %h4.page-header Requests per Minute
+      %h4.page-header Requests
 
       #throughput-graph
         .graph
         .slider
 
-      %h4.page-header Average Response Time
+      %h4.page-header Response Time
 
       #response-graph
         .graph
@@ -22,17 +22,22 @@
     .col-md-6
       %h4.page-header Breakdown
 
-      %table.table.table-condensed
+      %table.table.table-condensed.table-hover
         %thead
           %tr
             %th Controller#Action
-            %th Requests
+            %th.text-right Requests
 
         %tbody
+          %tr{class: @action.nil? || @action == 'total' ? 'warning' : ''}
+            %td
+              %strong= link_to 'Total', requests_path(params.merge action_name: 'total')
+            %td.text-right= @total_requests
           - @actions.take(20).each do |action|
-            %tr
-              %td= action[:name]
-              %td= action[:total]
+            %tr{class: action[:name] == @action ? 'warning' : ''}
+              %td
+                = link_to action[:name], requests_path(params.merge action_name: action[:name])
+              %td.text-right= action[:total]
 
       - if @actions.count > 20
         %p.text-muted= "#{@actions.count - 20} more..."
@@ -41,13 +46,13 @@
 
   palette = new Rickshaw.Color.Palette { scheme: 'spectrum14' }
 
-  count = #{@total_minutes_json}
-  duration = #{@total_duration_json}
-  status = #{@total_status_json}
+  count = #{@minutes_json}
+  duration = #{@duration_json}
+  status = #{@status_json}
 
-  view_duration = #{@total_view_duration}
-  db_duration = #{@total_db_duration}
-  other_duration = #{@total_other_duration}
+  view_duration = #{@view_duration}
+  db_duration = #{@db_duration}
+  other_duration = #{@other_duration}
 
   duration_parts = [
     { "name": "View", "data": view_duration },
