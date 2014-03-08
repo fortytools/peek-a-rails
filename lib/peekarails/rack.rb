@@ -20,6 +20,7 @@ class Peekarails::Rack
     context = {}
     context[:method] = request.request_method
     context[:path] = request.filtered_path
+    context[:timestamp] = Time.now.to_i
 
     Thread.current[:peekarails_context] = context
 
@@ -33,7 +34,7 @@ class Peekarails::Rack
       context = Thread.current[:peekarails_context]
       context[:error] = true
 
-      Peekarails::Metrics.record! context
+      Peekarails::Metrics.record_request! context
 
       raise exception
     end
@@ -50,7 +51,7 @@ class Peekarails::Rack
     context[:gc_heap_used] = gc_after[:heap_used]
     context[:gc_heap_free] = gc_after[:heap_length] - gc_after[:heap_used]
 
-    Peekarails::Metrics.record! context
+    Peekarails::Metrics.record_request! context
 
     [status, headers, body]
   end

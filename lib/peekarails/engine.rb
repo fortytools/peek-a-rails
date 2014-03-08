@@ -11,11 +11,28 @@ module Peekarails
     config.app_middleware.use Peekarails::Rack
 
     initializer "subscribe to notifications" do
-      ActiveSupport::Notifications.subscribe 'process_action.action_controller' do |*args|
+      ActiveSupport::Notifications.subscribe 'sql.active_record' do |*args|
+        event = ActiveSupport::Notifications::Event.new *args
+
+        context = Thread.current[:peekarails_context]
+
+        if context && event.payload[:name] != "CACHE"
+          query = event.payload[:sql].split.first
+          duration = (event.duration * 10.0).round
+
+          Peekarails::Metrics.record_query! query, duration, context
+        end
+      end
+
+      ActiveSupport::Notifications.subscribe ' start_processing.action_controller' do |*args|
         event = ActiveSupport::Notifications::Event.new *args
 
         Thread.current[:peekarails_context][:action] =
           "#{event.payload[:controller]}##{event.payload[:action]}"
+      end
+
+      ActiveSupport::Notifications.subscribe 'process_action.action_controller' do |*args|
+        event = ActiveSupport::Notifications::Event.new *args
 
         Thread.current[:peekarails_context][:duration] =
           event.duration.round

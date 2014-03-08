@@ -5,8 +5,8 @@ Rails monitoring watch observer.
 
 Peek-a-Rails is a Redis-backed Rails engine which watches
 and observes your Rails app and gathers several metrics.
-It comes fully loaded with a nice web interface where you
-can check the health of your app at a glance.
+It comes fully loaded with a web interface where you can
+check the health of your app at a glance.
 
 ## Requirements
 

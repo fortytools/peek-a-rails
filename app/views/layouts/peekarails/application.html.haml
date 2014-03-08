@@ -21,7 +21,7 @@
             %li{class: controller_name == 'requests' ? 'active' : ''}
               = link_to 'Requests', requests_path(granularity: @granularity_key)
             %li{class: controller_name == 'database' ? 'active' : ''}
-              = link_to 'Database', '#'
+              = link_to 'Database', database_path(granularity: @granulartiy_key)
             %li{class: controller_name == 'systems' ? 'active' : ''}
               = link_to 'System', system_path(granularity: @granularity_key)
 
@@ -38,6 +38,7 @@
                   $('button.refresh').click () ->
                     btn = $(this)
                     if btn.hasClass 'active'
+                      window.stop() # Make sure to stop any active reload
                       clearTimeout(reloading)
                       btn.removeClass 'btn-success'
                       btn.addClass 'btn-danger'

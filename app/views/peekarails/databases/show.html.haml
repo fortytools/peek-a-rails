@@ -1,0 +1,61 @@
+.container
+  .row
+    .col-md-6
+      %h3.page-header All Queries
+
+      #all-queries-graph
+        .graph
+        .slider
+
+      %h3.page-header Read Queries
+
+      #read-queries-graph
+        .graph
+        .slider
+
+      %h3.page-header Write Queries
+
+      #write-queries-graph
+        .graph
+        .slider
+
+    .col-md-6
+      %h3.page-header Performance
+
+      #performance-graph
+        .graph
+        .slider
+
+      %h3.page-header Read Duration
+
+      #read-duration-graph
+        .graph
+        .slider
+
+      %h3.page-header Write Duration
+
+      #write-duration-graph
+        .graph
+        .slider
+
+:coffeescript
+
+:coffeescript
+  all_queries = #{@all_queries_json}
+  read_queries = #{@read_queries_json}
+  write_queries = #{@write_queries_json}
+
+  performance = #{@performance_json}
+  read_duration = #{@read_duration_json}
+  write_duration = #{@write_duration_json}
+
+  palette = new Rickshaw.Color.Palette { scheme: 'spectrum14' }
+
+  renderMultiGraph(all_queries, '#all-queries-graph')
+  renderMultiGraph(read_queries, '#read-queries-graph')
+  renderMultiGraph(write_queries, '#write-queries-graph')
+
+  renderSingleGraph('Performance', performance, palette.color(), 'line', '#performance-graph')
+  renderMultiGraph(read_duration, '#read-duration-graph')
+  renderMultiGraph(write_duration, '#write-duration-graph')
+

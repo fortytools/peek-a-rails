@@ -57,8 +57,37 @@ module Peekarails::Metrics
       Peekarails.redis
     end
 
-    def record! context
-      timestamp = Time.now.to_i
+    def record_query! query, duration, context
+      timestamp = context[:timestamp]
+
+      redis.pipelined do
+        redis.sadd 'query:queries', query if query
+
+        GRANULARITIES.each do |name, granularity|
+          bucket = round_timestamp timestamp, granularity
+          index = factor_timestamp(timestamp, granularity)
+
+          key = "query:#{query}:count:#{name}:#{bucket}"
+          redis.hincrby key, index, 1
+          redis.expireat key, bucket + granularity[:ttl]
+
+          key = "query:total:count:#{name}:#{bucket}"
+          redis.hincrby key, index, 1
+          redis.expireat key, bucket + granularity[:ttl]
+
+          key = "query:#{query}:duration:#{name}:#{bucket}"
+          redis.hincrby key, index, duration
+          redis.expireat key, bucket + granularity[:ttl]
+
+          key = "query:total:duration:#{name}:#{bucket}"
+          redis.hincrby key, index, duration
+          redis.expireat key, bucket + granularity[:ttl]
+        end
+      end
+    end
+
+    def record_request! context
+      timestamp = context[:timestamp]
 
       method = context[:method]
       path = context[:path]
@@ -70,9 +99,9 @@ module Peekarails::Metrics
       db_duration = context[:db_duration]
 
       redis.pipelined do
-        redis.sadd 'controllers.actions', action
-        redis.sadd 'controllers.methods', methods
-        redis.sadd 'controllers.status', status
+        redis.sadd 'controllers:actions', action
+        redis.sadd 'controllers:methods', methods
+        redis.sadd 'controllers:status', status
 
         GRANULARITIES.each do |name, granularity|
           bucket = round_timestamp timestamp, granularity
@@ -137,6 +166,7 @@ module Peekarails::Metrics
               redis.hincrby key, index, db_duration
               redis.expireat key, bucket + granularity[:ttl]
             end
+
           end
         end
       end
@@ -202,7 +232,7 @@ module Peekarails::Metrics
     end
 
     def status granularity, from, to, action = 'total'
-      redis.smembers('controllers.status').map do |status|
+      redis.smembers('controllers:status').map do |status|
         {
           status: status,
           data: query(granularity, "controllers:#{action}:#{status}", from, to)
@@ -214,13 +244,38 @@ module Peekarails::Metrics
       ['minor', 'major'].map do |gc|
         {
           gc: gc,
-          data: query(granularity, "system.gc.#{gc}", from, to)
+          data: query(granularity, "system:gc:#{gc}", from, to)
         }
       end
     end
 
+    def queries granularity, from, to
+      redis.smembers('query:queries').map do |query|
+        {
+          query: query,
+          data: query(granularity, "query:#{query}:count", from, to)
+        }
+      end
+    end
+
+    def query_duration granularity, from, to
+      redis.smembers('query:queries').map do |query|
+        {
+          query: query,
+          data: query(granularity, "query:#{query}:duration", from, to)
+        }
+      end
+    end
+
+    def query_performance granularity, from, to
+      {
+        count: query(granularity, "query:total:count", from, to),
+        duration: query(granularity, "query:total:duration", from, to)
+      }
+    end
+
     def actions
-      redis.smembers 'controllers.actions'
+      redis.smembers 'controllers:actions'
     end
 
   end
