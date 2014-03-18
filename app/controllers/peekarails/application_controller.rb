@@ -1,5 +1,6 @@
 module Peekarails
   class ApplicationController < ActionController::Base
+
     before_filter :set_granularity
 
     private
