@@ -8,8 +8,6 @@ module Peekarails
     yield self
   end
 
-  mattr_accessor :authentication_method
-
   # Accepts:
   #   1. A 'hostname:port' String
   #   2. A 'hostname:port:db' String (to select the Redis db)
