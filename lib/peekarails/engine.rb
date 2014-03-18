@@ -24,7 +24,7 @@ module Peekarails
         end
       end
 
-      ActiveSupport::Notifications.subscribe ' start_processing.action_controller' do |*args|
+      ActiveSupport::Notifications.subscribe 'start_processing.action_controller' do |*args|
         event = ActiveSupport::Notifications::Event.new *args
 
         Thread.current[:peekarails_context][:action] =

@@ -141,11 +141,11 @@ module Peekarails
               redis.hincrby key, index, 1
               redis.expireat key, bucket + granularity[:ttl]
 
-              key = "system.gc.minor:#{name}:#{bucket}"
+              key = "system:gc:minor:#{name}:#{bucket}"
               redis.hincrby key, index, context[:gc_minor_count]
               redis.expireat key, bucket + granularity[:ttl]
 
-              key = "system.gc.major:#{name}:#{bucket}"
+              key = "system:gc:major:#{name}:#{bucket}"
               redis.hincrby key, index, context[:gc_major_count]
               redis.expireat key, bucket + granularity[:ttl]
 
