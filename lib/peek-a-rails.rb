@@ -1,7 +1,9 @@
 require 'redis/namespace'
+
 require 'peekarails/engine'
 
 module Peekarails
+
   def self.configure
     yield self
   end
@@ -20,12 +22,12 @@ module Peekarails
     case server
     when String
       if server =~ /redis\:\/\//
-        redis = Redis.connect(:url => server, :thread_safe => true)
+        redis = Redis.new(:url => server, :thread_safe => true, :timeout => 1.0)
       else
         server, namespace = server.split('/', 2)
         host, port, db = server.split(':')
         redis = Redis.new(:host => host, :port => port,
-          :thread_safe => true, :db => db)
+          :thread_safe => true, :db => db, :timeout => 1.0)
       end
       namespace ||= :resque
 
