@@ -101,7 +101,7 @@ module Peekarails
 
         redis.pipelined do
           redis.sadd 'controllers:actions', action
-          redis.sadd 'controllers:methods', methods
+          redis.sadd 'controllers:methods', method
           redis.sadd 'controllers:status', status
 
           GRANULARITIES.each do |name, granularity|
