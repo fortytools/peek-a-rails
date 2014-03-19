@@ -28,15 +28,15 @@ module Peekarails
         redis = Redis.new(:host => host, :port => port,
           :thread_safe => true, :db => db, :timeout => 1.0)
       end
-      namespace ||= :resque
+      namespace ||= :peekarails
 
       @redis = Redis::Namespace.new(namespace, :redis => redis)
     when Redis::Namespace
       @redis = server
     when Hash
-      @redis = Redis::Namespace.new(:resque, :redis => Redis.new(server))
+      @redis = Redis::Namespace.new(:peekarails, :redis => Redis.new(server))
     else
-      @redis = Redis::Namespace.new(:resque, :redis => server)
+      @redis = Redis::Namespace.new(:peekarails, :redis => server)
     end
   end
 
