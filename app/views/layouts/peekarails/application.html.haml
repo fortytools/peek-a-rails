@@ -7,60 +7,75 @@
     = csrf_meta_tags
 
   %body
-    %header.navbar.navbar-default.navbar-inverse.navbar-static-top{role: 'navigation'}
-      .container
-        .navbar-header
-          %button.navbar-toggle{type: "button", data: {toggle: "collapse", target: "#bs-navbar-collapse"}}
-            %span.sr-only Toggle navigation
-            %span.icon-bar
-            %span.icon-bar
-            %span.icon-bar
+    #wrap
+      %header.navbar.navbar-default.navbar-inverse.navbar-static-top{role: 'navigation'}
+        .container
+          .navbar-header
+            %button.navbar-toggle{type: "button", data: {toggle: "collapse", target: "#bs-navbar-collapse"}}
+              %span.sr-only Toggle navigation
+              %span.icon-bar
+              %span.icon-bar
+              %span.icon-bar
 
-        #bs-navbar-collapse.navbar-collapse.collapse
-          %ul.nav.navbar-nav
-            %li{class: controller_name == 'requests' ? 'active' : ''}
-              = link_to 'Requests', requests_path(granularity: @granularity_key)
-            %li{class: controller_name == 'database' ? 'active' : ''}
-              = link_to 'Database', database_path(granularity: @granulartiy_key)
-            %li{class: controller_name == 'systems' ? 'active' : ''}
-              = link_to 'System', system_path(granularity: @granularity_key)
+          #bs-navbar-collapse.navbar-collapse.collapse
+            %ul.nav.navbar-nav
+              %li{class: controller_name == 'requests' ? 'active' : ''}
+                = link_to 'Requests', requests_path(granularity: @granularity_key)
+              %li{class: controller_name == 'databases' ? 'active' : ''}
+                = link_to 'Database', database_path(granularity: @granulartiy_key)
+              %li{class: controller_name == 'systems' ? 'active' : ''}
+                = link_to 'System', system_path(granularity: @granularity_key)
 
-          %ul.nav.navbar-nav.navbar-right
-            - if @granularity_key == :five_seconds # Realtime!
-              %li
-                %button.refresh.navbar-btn.btn.btn-success.active{type: 'button', data: {toggle: 'button'}}
-                  %span.glyphicon.glyphicon-refresh{title: 'Auto Refresh'}
+            %ul.nav.navbar-nav.navbar-right
+              - if @granularity_key == :five_seconds # Realtime!
+                %li
+                  %button.refresh.navbar-btn.btn.btn-success.active{type: 'button', data: {toggle: 'button'}}
+                    %span.glyphicon.glyphicon-refresh{title: 'Auto Refresh'}
 
-              :coffeescript
-                $ () ->
-                  reloading = setTimeout('window.location.reload(true);', 5000)
+                :coffeescript
+                  $ () ->
+                    reloading = setTimeout('window.location.reload(true);', 5000)
 
-                  $('button.refresh').click () ->
-                    btn = $(this)
-                    if btn.hasClass 'active'
-                      window.stop() # Make sure to stop any active reload
-                      clearTimeout(reloading)
-                      btn.removeClass 'btn-success'
-                      btn.addClass 'btn-danger'
-                    else
-                      reloading = setTimeout('window.location.reload(true);', 5000)
-                      btn.removeClass 'btn-danger'
-                      btn.addClass 'btn-success'
+                    $('button.refresh').click () ->
+                      btn = $(this)
+                      if btn.hasClass 'active'
+                        window.stop() # Make sure to stop any active reload
+                        clearTimeout(reloading)
+                        btn.removeClass 'btn-success'
+                        btn.addClass 'btn-danger'
+                      else
+                        reloading = setTimeout('window.location.reload(true);', 5000)
+                        btn.removeClass 'btn-danger'
+                        btn.addClass 'btn-success'
 
-              %li.divider
+                %li.divider
 
-            %li.granularity
-              .btn-group.navbar-btn
-                %button.btn.btn-info.dropdown-toggle{type: 'button', data: {toggle: 'dropdown'}}
-                  = @granularity[:name]
-                  %b.caret
+              %li.granularity
+                .btn-group.navbar-btn
+                  %button.btn.btn-info.dropdown-toggle{type: 'button', data: {toggle: 'dropdown'}}
+                    = @granularity[:name]
+                    %b.caret
 
-                %ul.dropdown-menu
-                  - Peekarails::Metrics::GRANULARITIES.each do |key, granularity|
-                    %li= link_to granularity[:name], url_for(params.merge(only_path: false, granularity: key))
+                  %ul.dropdown-menu
+                    - Peekarails::Metrics::GRANULARITIES.each do |key, granularity|
+                      %li= link_to granularity[:name], url_for(params.merge(only_path: false, granularity: key))
 
 
-    = yield
+      #main
+        = yield
 
     %footer
+      .container
+        .row
+          .col-md-2.text-muted
+            = link_to 'Peek-a-Rails', 'https://github.com/fortytools/peek-a-rails'
+            = Peekarails::VERSION
+
+          .col-md-2.text-muted
+            Redis
+            = "#{Peekarails.redis.client.host}:#{Peekarails.redis.client.port}/#{Peekarails.redis.client.db}"
+
+          .col-md-3.text-muted
+            Time
+            = Time.now.utc
 

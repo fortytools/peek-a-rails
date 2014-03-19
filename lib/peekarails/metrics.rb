@@ -58,116 +58,128 @@ module Peekarails
         Peekarails.redis
       end
 
+      def record! &block
+        begin
+          instance_eval &block
+        rescue Redis::BaseConnectionError => redis_exception
+          Rails.logger.warn "Recording error in peek-a-rails: #{redis_exception}"
+        end
+      end
+
       def record_query! query, duration, context
-        timestamp = context[:timestamp]
+        record! do
+          timestamp = context[:timestamp]
 
-        redis.pipelined do
-          redis.sadd 'query:queries', query if query
+          redis.pipelined do
+            redis.sadd 'query:queries', query if query
 
-          GRANULARITIES.each do |name, granularity|
-            bucket = round_timestamp timestamp, granularity
-            index = factor_timestamp(timestamp, granularity)
+            GRANULARITIES.each do |name, granularity|
+              bucket = round_timestamp timestamp, granularity
+              index = factor_timestamp(timestamp, granularity)
 
-            key = "query:#{query}:count:#{name}:#{bucket}"
-            redis.hincrby key, index, 1
-            redis.expireat key, bucket + granularity[:ttl]
+              key = "query:#{query}:count:#{name}:#{bucket}"
+              redis.hincrby key, index, 1
+              redis.expireat key, bucket + granularity[:ttl]
 
-            key = "query:total:count:#{name}:#{bucket}"
-            redis.hincrby key, index, 1
-            redis.expireat key, bucket + granularity[:ttl]
+              key = "query:total:count:#{name}:#{bucket}"
+              redis.hincrby key, index, 1
+              redis.expireat key, bucket + granularity[:ttl]
 
-            key = "query:#{query}:duration:#{name}:#{bucket}"
-            redis.hincrby key, index, duration
-            redis.expireat key, bucket + granularity[:ttl]
+              key = "query:#{query}:duration:#{name}:#{bucket}"
+              redis.hincrby key, index, duration
+              redis.expireat key, bucket + granularity[:ttl]
 
-            key = "query:total:duration:#{name}:#{bucket}"
-            redis.hincrby key, index, duration
-            redis.expireat key, bucket + granularity[:ttl]
+              key = "query:total:duration:#{name}:#{bucket}"
+              redis.hincrby key, index, duration
+              redis.expireat key, bucket + granularity[:ttl]
+            end
           end
         end
       end
 
       def record_request! context
-        timestamp = context[:timestamp]
+        record! do
+          timestamp = context[:timestamp]
 
-        method = context[:method]
-        path = context[:path]
-        action = context[:action] || 'Unknown'
-        duration = context[:duration]
-        status = context[:status]
+          method = context[:method]
+          path = context[:path]
+          action = context[:action] || 'Unknown'
+          duration = context[:duration]
+          status = context[:status]
 
-        view_duration = context[:view_duration]
-        db_duration = context[:db_duration]
+          view_duration = context[:view_duration]
+          db_duration = context[:db_duration]
 
-        redis.pipelined do
-          redis.sadd 'controllers:actions', action
-          redis.sadd 'controllers:methods', method
-          redis.sadd 'controllers:status', status
+          redis.pipelined do
+            redis.sadd 'controllers:actions', action
+            redis.sadd 'controllers:methods', method
+            redis.sadd 'controllers:status', status
 
-          GRANULARITIES.each do |name, granularity|
-            bucket = round_timestamp timestamp, granularity
-            index = factor_timestamp(timestamp, granularity)
+            GRANULARITIES.each do |name, granularity|
+              bucket = round_timestamp timestamp, granularity
+              index = factor_timestamp(timestamp, granularity)
 
-            key = "controllers:total:#{method}:#{name}:#{bucket}"
-            redis.hincrby key, index, 1
-            redis.expireat key, bucket + granularity[:ttl]
-
-            if context[:error]
-              key = "requests:error:count:#{name}:#{bucket}"
-              redis.hincrby key, index, 1
-              redis.expireat key, bucket + granularity[:ttl]
-            else
-              key = "controllers:#{action}:count:#{name}:#{bucket}"
+              key = "controllers:total:#{method}:#{name}:#{bucket}"
               redis.hincrby key, index, 1
               redis.expireat key, bucket + granularity[:ttl]
 
-              key = "controllers:#{action}:duration:#{name}:#{bucket}"
-              redis.hincrby key, index, duration
-              redis.expireat key, bucket + granularity[:ttl]
-
-              key = "controllers:#{action}:#{status}:#{name}:#{bucket}"
-              redis.hincrby key, index, 1
-              redis.expireat key, bucket + granularity[:ttl]
-
-              key = "controllers:total:count:#{name}:#{bucket}"
-              redis.hincrby key, index, 1
-              redis.expireat key, bucket + granularity[:ttl]
-
-              key = "controllers:total:duration:#{name}:#{bucket}"
-              redis.hincrby key, index, duration
-              redis.expireat key, bucket + granularity[:ttl]
-
-              key = "controllers:total:#{status}:#{name}:#{bucket}"
-              redis.hincrby key, index, 1
-              redis.expireat key, bucket + granularity[:ttl]
-
-              key = "system:gc:minor:#{name}:#{bucket}"
-              redis.hincrby key, index, context[:gc_minor_count]
-              redis.expireat key, bucket + granularity[:ttl]
-
-              key = "system:gc:major:#{name}:#{bucket}"
-              redis.hincrby key, index, context[:gc_major_count]
-              redis.expireat key, bucket + granularity[:ttl]
-
-              if view_duration
-                key = "controllers:#{action}:view_duration:#{name}:#{bucket}"
-                redis.hincrby key, index, view_duration
+              if context[:error]
+                key = "requests:error:count:#{name}:#{bucket}"
+                redis.hincrby key, index, 1
+                redis.expireat key, bucket + granularity[:ttl]
+              else
+                key = "controllers:#{action}:count:#{name}:#{bucket}"
+                redis.hincrby key, index, 1
                 redis.expireat key, bucket + granularity[:ttl]
 
-                key = "controllers:total:view_duration:#{name}:#{bucket}"
-                redis.hincrby key, index, view_duration
+                key = "controllers:#{action}:duration:#{name}:#{bucket}"
+                redis.hincrby key, index, duration
                 redis.expireat key, bucket + granularity[:ttl]
+
+                key = "controllers:#{action}:#{status}:#{name}:#{bucket}"
+                redis.hincrby key, index, 1
+                redis.expireat key, bucket + granularity[:ttl]
+
+                key = "controllers:total:count:#{name}:#{bucket}"
+                redis.hincrby key, index, 1
+                redis.expireat key, bucket + granularity[:ttl]
+
+                key = "controllers:total:duration:#{name}:#{bucket}"
+                redis.hincrby key, index, duration
+                redis.expireat key, bucket + granularity[:ttl]
+
+                key = "controllers:total:#{status}:#{name}:#{bucket}"
+                redis.hincrby key, index, 1
+                redis.expireat key, bucket + granularity[:ttl]
+
+                key = "system:gc:minor:#{name}:#{bucket}"
+                redis.hincrby key, index, context[:gc_minor_count]
+                redis.expireat key, bucket + granularity[:ttl]
+
+                key = "system:gc:major:#{name}:#{bucket}"
+                redis.hincrby key, index, context[:gc_major_count]
+                redis.expireat key, bucket + granularity[:ttl]
+
+                if view_duration
+                  key = "controllers:#{action}:view_duration:#{name}:#{bucket}"
+                  redis.hincrby key, index, view_duration
+                  redis.expireat key, bucket + granularity[:ttl]
+
+                  key = "controllers:total:view_duration:#{name}:#{bucket}"
+                  redis.hincrby key, index, view_duration
+                  redis.expireat key, bucket + granularity[:ttl]
+                end
+                if db_duration
+                  key = "controllers:#{action}:db_duration:#{name}:#{bucket}"
+                  redis.hincrby key, index, db_duration
+                  redis.expireat key, bucket + granularity[:ttl]
+
+                  key = "controllers:total:db_duration:#{name}:#{bucket}"
+                  redis.hincrby key, index, db_duration
+                  redis.expireat key, bucket + granularity[:ttl]
+                end
+
               end
-              if db_duration
-                key = "controllers:#{action}:db_duration:#{name}:#{bucket}"
-                redis.hincrby key, index, db_duration
-                redis.expireat key, bucket + granularity[:ttl]
-
-                key = "controllers:total:db_duration:#{name}:#{bucket}"
-                redis.hincrby key, index, db_duration
-                redis.expireat key, bucket + granularity[:ttl]
-              end
-
             end
           end
         end
