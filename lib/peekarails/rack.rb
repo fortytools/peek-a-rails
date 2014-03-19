@@ -46,9 +46,9 @@ module Peekarails
 
       context[:status] = status
 
-      context[:gc_count] = gc_after[:count] - gc_before[:count]
-      context[:gc_minor_count] = gc_after[:minor_gc_count] - gc_before[:minor_gc_count]
-      context[:gc_major_count] = gc_after[:major_gc_count] - gc_before[:major_gc_count]
+      context[:gc_count] = (gc_after[:count] || 0) - (gc_before[:count] || 0)
+      context[:gc_minor_count] = (gc_after[:minor_gc_count] || 0) - (gc_before[:minor_gc_count] || 0)
+      context[:gc_major_count] = (gc_after[:major_gc_count] || 0) - (gc_before[:major_gc_count] || 0)
       context[:gc_heap_used] = gc_after[:heap_used]
       context[:gc_heap_free] = gc_after[:heap_length] - gc_after[:heap_used]
 
