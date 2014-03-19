@@ -1,5 +1,6 @@
 require 'redis/namespace'
 
+require 'peekarails/version'
 require 'peekarails/engine'
 
 module Peekarails
