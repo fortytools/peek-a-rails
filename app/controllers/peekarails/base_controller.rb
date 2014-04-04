@@ -14,7 +14,9 @@ module Peekarails
     private
 
     def authorize
-      send(Peekarails.authentication_method.to_sym)
+      unless Peekarails.authentication_method.nil?
+        return send(Peekarails.authentication_method.to_sym)
+      end
     end
 
     def set_granularity

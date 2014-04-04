@@ -52,7 +52,11 @@ module Peekarails
       context[:gc_heap_used] = gc_after[:heap_used]
       context[:gc_heap_free] = gc_after[:heap_length] - gc_after[:heap_used]
 
-      Peekarails::Metrics.record_request! context
+      begin
+        Peekarails::Metrics.record_request! context
+      rescue Exception => exception
+        Rails.logger.error "Recording error in peek-a-rails:\n#{exception}\n#{context.inspect}"
+      end
 
       [status, headers, body]
     end
