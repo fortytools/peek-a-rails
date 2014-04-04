@@ -1,11 +1,12 @@
-require 'bootstrap-sass'
-require 'rickshaw_rails'
-require 'jquery-ui-rails'
 
 require 'peekarails/rack'
 
 module Peekarails
   class Engine < ::Rails::Engine
+    require 'bootstrap-sass'
+    require 'rickshaw_rails'
+    require 'jquery-ui-rails'
+
     isolate_namespace Peekarails
 
     config.app_middleware.use Peekarails::Rack unless Rails.env.test?

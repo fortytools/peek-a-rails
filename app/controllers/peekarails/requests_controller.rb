@@ -1,7 +1,7 @@
-require_dependency "peekarails/application_controller"
+require_dependency "peekarails/base_controller"
 
 module Peekarails
-  class RequestsController < ApplicationController
+  class RequestsController < BaseController
 
     def index
       actions = Metrics.actions

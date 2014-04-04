@@ -1,7 +1,7 @@
-require_dependency "peekarails/application_controller"
+require_dependency "peekarails/base_controller"
 
 module Peekarails
-  class SystemsController < ApplicationController
+  class SystemsController < BaseController
 
     def show
       now = Time.now.to_i

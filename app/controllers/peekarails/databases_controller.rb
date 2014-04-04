@@ -1,7 +1,7 @@
-require_dependency "peekarails/application_controller"
+require_dependency "peekarails/base_controller"
 
 module Peekarails
-  class DatabasesController < ApplicationController
+  class DatabasesController < BaseController
 
     WRITE_QUERIES = [ 'INSERT', 'UPDATE' ]
     READ_QUERIES = [ 'SELECT' ]
